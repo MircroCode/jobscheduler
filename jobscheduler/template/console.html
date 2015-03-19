@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="180">
+    <title>{{ title }}</title>
+</head>
+<body>
+<h1>JOBS</h1>
+<table border="5px;">
+    <tr>
+        <td>JobID</td>
+        <td>ModuleName</td>
+        <td>JobName</td>
+        <td>EnvScript</td>
+        <td>JobScript</td>
+        <td>PreJobIDs</td>
+        <td>PreJobScripts</td>
+        <td>Schedule</td>
+        <td>IsAvariable</td>
+        <td>Operation</td>
+    </tr>
+    {% for job in jobs %}
+    <tr>
+        <td>{{ job.job_id }}</td>
+        <td>{{ job.module_name }}</td>
+        <td>{{ job.job_name }}</td>
+        <td>{{ job.env_script }}</td>
+        <td>{{ job.job_script }}</td>
+        <td>{{ job.pre_job_ids }}</td>
+        <td>{{ job.pre_job_scripts }}</td>
+        <td>{{ job.schedule }}</td>
+        <td>{{ job.is_avariable }}</td>
+        <td><a href="start_job?jobid={{ job.job_id }}">start</a>
+            <!--<a href="/stop_job?jobid={{ job.job_id }}">stop</a>-->
+            <a href="edit_job?jobid={{ job.job_id }}" target="_blank">edit</a>
+            <a href="add_job"  target="_blank">add</a>
+        </td>
+    </tr>
+    {% end %}
+</table>
+<br/>
+<br/>
+<br/>
+
+<h1>FINISHED JOBS</h1>
+<form method="post" action="/filter_job_history">
+<p>ExecStartTime:<input name="starttime">
+    ExecEndTime:<input  name="endtime">
+    ModuleName:<input name="modulename">
+    JobName:<input name="jobname">
+    ExecStatus:<input name="execstatus">
+<input type="submit" value="filter">
+</form>
+
+<table border="5px;">
+    <tr>
+        <td>ExecStarttime</td>
+        <td>ExecEndtime</td>
+        <td>JobID</td>
+        <td>ModuleName</td>
+        <td>JobName</td>
+        <td>EnvScript</td>
+        <td>JobScript</td>
+        <td>PreJobIDs</td>
+        <td>PreJobScripts</td>
+        <td>Scheduler</td>
+        <td>ExecStatus</td>
+        <td>ExecLog</td>
+    </tr>
+    {% for job in jobhistory %}
+    <tr>
+        <td>{{ job.exec_starttime }}</td>
+        <td>{{ job.exec_endtime }}</td>
+        <td>{{ job.job_id }}</td>
+        <td>{{ job.module_name }}</td>
+        <td>{{ job.job_name }}</td>
+        <td>{{ job.env_script }}</td>
+        <td>{{ job.job_script }}</td>
+        <td>{{ job.pre_job_ids }}</td>
+        <td>{{ job.pre_job_scripts }}</td>
+        <td>{{ job.schedule }}</td>
+        <td style="color:{% if job.exec_status is not None and job.exec_status.find('SUCCESS')>0 %} {{'green'}} {% else %} {{'red'}}{% end %}">{{ job.exec_status }}</td>
+        <td><a href="read_log?log={{ job.exec_log }}" target="_blank">log</a></td>
+    </tr>
+    {% end %}
+    </table>
+
+    <input type="button" value="运行日志查看" onclick="window.open('read_log?log=/tmp/jobscheduler.log')"/>
+</body>
+</html>

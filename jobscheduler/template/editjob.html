@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+<h1>EDIT JOBS</h1>
+<form method="post" target="/update_job">
+    <p>JobID *<br><input type="text" name="jobid" value="{% if job is not None %} {{ job.job_id }}{% end %}"></p>
+    <p>ModuleName *<br><input type="text" name="modulename" value="{% if job is not None %} {{ job.module_name }}{% end %}"></p>
+    <p>JobName *<br><input type="text" name="jobname" value="{% if job is not None %} {{ job.job_name }}{% end %}"></p>
+    <p>EnvScript<br><input type="text" name="envscript" value="{% if job is not None %} {{ job.env_script }}{% end %}"></p>
+    <p>JobScript *<br><input type="text" name="jobscript" value="{% if job is not None %} {{ job.job_script }}{% end %}"></p>
+    <p>PreJobIDs<br><input type="text" name="prejobids" value="{% if job is not None %} {{ job.pre_job_ids }}{% end %}"></p>
+    <p>PreJobScripts<br><input type="text" name="prejobscripts" value="{% if job is not None %} {{ job.pre_job_scripts }}{% end %}"></p>
+    <p>Schedule<br><input type="text" name="schedule" value="{% if job is not None %} {{ job.schedule }}{% end %}"></p>
+    <p>IsAvariable *<br><input type="text" name="isavariable" value="{% if job is not None %} {{ job.is_avariable }}{% end %}"></p>
+    <p>Operation<br><input type="submit" value="Confirm"></p>
+</form>
+{% if vflag is not None %}  <p style="color:red">{{ vflag }}</p> {% end %}
+</body>
+</html>

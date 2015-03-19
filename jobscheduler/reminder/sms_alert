@@ -1,0 +1,88 @@
+#!/bin/sh
+
+## Change Log
+## DATE:2010-09-27
+##      1. chown nagios:nagios /tmp/sms.log ## avoid sms failure.
+
+## DATE:2010-02-09
+##      1. 增加给Mark 的报警定制;只接收user/friend/home/jms
+##      2. 去除频度控制
+##      3. 支持联通了  -- 2010/8/3
+##      4. remove Mark 的报警
+## DATE:2011-04-26
+##    1. 增加停止发短信，1小时后自动恢复(hognwei 8841)
+timefile=/tmp/jobscheduler/date.txt
+retime=`cat $timefile`
+now=`date +"%s"`
+time=`date +%Y%m%d%H%M%S`
+COLUMNID=6314
+#网关接口字段
+keyid='20140331151239106SMSPLATACCESS099280'
+appid='100182'
+priority=3
+
+
+if [ -e $timefile ] && [[ "$retime" < "$now" ]]
+ then
+
+  mobile=$2
+  if [[ ! -z $3 ]]
+  then
+
+          ## input: jms_n86_61616:61616,jms_n86_41616:41616 ;output: jms_n86_61616
+          hostalias=`echo "$3"|awk -F':' '{print $1}'`
+          hostalias=`echo $hostalias|sed 's/base[a-z A-Z]*_//gi'|sed 's/sys[a-z A-Z]*_//gi'|sed 's/ext[a-z A-Z]*_//gi'`
+        hostalias=`echo $hostalias|sed 's/base[a-z A-Z]*-//gi'|sed 's/sys[a-z A-Z]*-//gi'|sed 's/ext[a-z A-Z]*-//gi'`
+  fi
+  logfile="/tmp/jobscheduler/sms.log"
+  lockfile="/tmp/jobscheduler/sms_${mobile}.lock"
+  blockcnt="/tmp/jobscheduler/sms_blocked_cnt"
+  date_str=`date +"%Y-%m-%d %H:%M:%S"`
+
+  long_now=`date +%s`
+  _ttt=`stat $lockfile |awk '{if($1=="Modify:"){ss=$2" "$3}}END{print ss}'`
+  long_last=`date -d "${_ttt}" +%s`
+
+  time=`expr $long_now - $long_last`
+          content=$1;
+          ## content encoding...
+      isIP=`echo "$content"|grep "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}"|wc -l`
+      #echo "----"$isIP"---"    
+          if [[ $isIP -eq 1 ]];
+          then
+                  content=$content"@"$hostalias
+          fi
+      #content=`echo $content|sed -f /opt/nagios/libexec/urlencode.sed`
+      ## content replace sensitive words
+      #content=`echo $content|sed 's/av/au/g'`
+      echo "-------------------"$date_str"-----------------------" >> $logfile
+      echo "send sms to $2 ============after_last_time:$time=====>" >> $logfile
+      echo "  msg:$1" >> $logfile
+
+#	content=`echo $content |sed 's/ /-/g' `
+       contentUrlcode=`/usr/bin/php urlcode.php "${content}"`
+       echo $contentUrlcode
+#       contentUrlcode=`python encode.py "${content}"`
+#       echo $contentUrlcode
+      #/usr/bin/wget "http://ppt.sohu-inc.com/ppp/sns2.php?key=x1@9eng&src=${2}&fee=${2}&dest=${2}&mess=${content}" -O /tmp/sms.log
+#          /usr/bin/wget "http://192.168.99.217:9001/webroot/smssend.jsp?fromnum=13911807824&tonum=%d&id=0&fr=text&type=test&message=%s" % (mobileNumber, message)
+      #content=`echo ${content}|sed -f urlencode.sed2`
+     #/usr/bin/wget "http://192.168.99.217:9001/webroot/smssend.jsp?fromnum=13911807824&tonum=${2}&id=0&fr=text&type=test&message=${content}" -O /tmp/sms.log
+   
+#     UTF=`python encode.py ${appid}${2}${content}${time}${keyid}`
+#     echo $UTF
+
+     encA=`/usr/bin/php md5.php "${appid}${2}${content}${time}${keyid}"`
+
+     /usr/bin/wget "http://i.sms.sohu.com/WLS/smsaccess/mt?appid=${appid}&destnumber=${2}&content=${contentUrlcode}&enc=${encA}&linkid=20121126101155432&priority=${priority}&timestamp=${time}" -O /tmp/sms.log
+      >$lockfile
+      #echo "0" > $blockcnt
+	echo $contentUrlcode >> /tmp/sms.log
+      cat /tmp/sms.log       
+
+  chmod 777 /tmp/sms.log
+ else
+       touch /tmp/jobscheduler/date.txt
+fi
+exit 0
+

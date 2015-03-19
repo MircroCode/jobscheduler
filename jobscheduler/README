@@ -1,0 +1,15 @@
+简述：
+使用tornado作为web服务器，提供http操作界面，提供手动，定时自动执行两种方式执行任务。
+任务提供文件存储以及Mysql存储两种方式。
+
+依赖包：
+MySQLdb
+tornado
+
+
+记录:
+1.由于服务器端的mysql连接必须设置--secure-auth=False，而MySQLdb对此并不支持。因此改写一个FileDB,用file存储数据。
+2.发布的时候，db下的需要更新，logs目录需要更新
+
+TODO:
+将logs移到外面，避免发布的时候覆盖了之前的日志
